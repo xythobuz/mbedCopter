@@ -30,7 +30,7 @@ int Gyro::init(Gyro::Range r) {
     return i2c->write(address, data, 2, false);
 }
 
-int Gyro::read(float *v) {
+int Gyro::read(double *v) {
     char data[6];
 
     if (v == NULL)

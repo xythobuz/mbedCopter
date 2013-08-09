@@ -1,5 +1,7 @@
 #include "mbed.h"
 
+#ifndef _SENSORS_H
+#define _SENSORS_H
 
 class Gyro {
 public:
@@ -11,7 +13,7 @@ public:
 
     Gyro(I2C *i);
     int init(Range r); // 0 on success
-    int read(float *v); // 0 on success
+    int read(double *v); // 0 on success
 
     static const uint8_t address = 0xD6;
     static const uint8_t register1 = 0x20;
@@ -35,7 +37,7 @@ public:
 
     Acc(I2C *i);
     int init(Range r); // 0 on success
-    int read(float *v); // 0 on success
+    int read(double *v); // 0 on success
 
     static const uint8_t address = 0x32;
     static const uint8_t register1 = 0x20;
@@ -46,3 +48,5 @@ private:
     I2C *i2c;
     Range range;
 };
+
+#endif

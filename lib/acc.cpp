@@ -33,7 +33,7 @@ int Acc::init(Acc::Range r) {
     return i2c->write(address, data, 2, false);
 }
 
-int Acc::read(float *v) {
+int Acc::read(double *v) {
     char data[6];
 
     if (v == NULL)
