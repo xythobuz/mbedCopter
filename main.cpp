@@ -1,6 +1,9 @@
 #include "mbed.h"
 #include "sensors.h"
 #include "attitude.h"
+#include "remote.h"
+
+#include <stdlib.h>
 
 DigitalOut statusLED[] = { DigitalOut(LED1), DigitalOut(LED2), DigitalOut(LED3), DigitalOut(LED4) };
 Serial pc(USBTX, USBRX);
@@ -9,6 +12,7 @@ I2C i2c(p28, p27);
 Gyro gyro(&i2c);
 Acc acc(&i2c);
 Attitude attitude(&gyro, &acc);
+Remote remote(p6, 6);
 
 #define ERROR_ANIMATION_1 150 // IOOI <-> OIIO
 #define ERROR_ANIMATION_2 165 // IOIO <-> OIOI
@@ -65,6 +69,15 @@ int main() {
             switch (pc.getc()) {
             case 'a':
                 pc.printf("Roll: %.2f\nPitch: %.2f\nYaw: %.2f\n", attitude.roll, attitude.pitch, attitude.yaw);
+                break;
+
+            case 'r':
+                int *data;
+                data = remote.get();
+                for (int i = 0; i < remote.bufferLength; i++) {
+                    pc.printf("%d: %d\n", i, data[i]);
+                }
+                free(data);
                 break;
 
             default:
