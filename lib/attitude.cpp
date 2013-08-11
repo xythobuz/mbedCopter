@@ -9,14 +9,12 @@
 #define Y 1
 #define Z 2
 
-Attitude::Attitude(Gyro *g, Acc *a) {
+Attitude::Attitude(Gyro *g, Acc *a, int frequency) : pitchFilter(frequency), rollFilter(frequency) {
     gyro = g;
     acc = a;
     roll = 0.0;
     pitch = 0.0;
     yaw = 0.0;
-    pitchFilter = Kalman();
-    rollFilter = Kalman();
 }
 
 int Attitude::calculate() {

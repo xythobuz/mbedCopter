@@ -6,7 +6,7 @@
 
 class Attitude {
 public:
-    Attitude(Gyro *g, Acc *a);
+    Attitude(Gyro *g, Acc *a, int frequency);
     int calculate(); // 0 on success
 
     double roll, pitch, yaw;

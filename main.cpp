@@ -2,8 +2,11 @@
 #include "sensors.h"
 #include "attitude.h"
 #include "remote.h"
+#include "altitude.h"
 
 #include <stdlib.h>
+
+int attitudeFrequency = 200;
 
 DigitalOut statusLED[] = { DigitalOut(LED1), DigitalOut(LED2), DigitalOut(LED3), DigitalOut(LED4) };
 Serial pc(USBTX, USBRX);
@@ -11,8 +14,9 @@ Ticker ticker;
 I2C i2c(p28, p27);
 Gyro gyro(&i2c);
 Acc acc(&i2c);
-Attitude attitude(&gyro, &acc);
+Attitude attitude(&gyro, &acc, attitudeFrequency);
 Remote remote(p6, 6);
+Altitude altitude(&i2c);
 
 #define ERROR_ANIMATION_1 150 // IOOI <-> OIIO
 #define ERROR_ANIMATION_2 165 // IOIO <-> OIOI
@@ -61,8 +65,13 @@ int main() {
         errorLoop(ERROR_ANIMATION_2);
     }
 
+    if (int error = altitude.init()) {
+        pc.printf("Altitude Init Error %d!\n", error);
+        errorLoop(ERROR_ANIMATION_4);
+    }
+
     display(0);
-    ticker.attach_us(&attitudeHandler, (10 * 1000)); // 10ms --> 100Hz
+    ticker.attach_us(&attitudeHandler, (1000000 / attitudeFrequency));
 
     while(1) {
         if(pc.readable()) {
@@ -78,6 +87,15 @@ int main() {
                     pc.printf("%d: %d\n", i, data[i]);
                 }
                 free(data);
+                break;
+
+            case 'p':
+                uint16_t temperature;
+                int32_t pressure;
+                altitude.readTemperature(&temperature);
+                altitude.readPressure(&pressure);
+                pc.printf("Temperature: %.1f Celsius\n", temperature * 0.1f);
+                pc.printf("Pressure: %d Pascal\n", pressure);
                 break;
 
             default:

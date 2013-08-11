@@ -1,6 +1,6 @@
 #include "kalman.h"
 
-Kalman::Kalman() {
+Kalman::Kalman(int frequency) {
     x1 = 0.0;
     x2 = 0.0;
     x3 = 0.0;
@@ -16,6 +16,8 @@ Kalman::Kalman() {
     q31 = 0.0;
     q32 = 0.0;
     q33 = 1000.0;
+
+    DT = 1.0 / (double)frequency;
 }
 
 void Kalman::innovate(double z1, double z2) {
