@@ -12,8 +12,15 @@ public:
     int readTemperature(uint16_t *data); // 0 on succes, units of 0.1 deg C
     int readPressure(int32_t *data); // 0 on success, units of Pa
 
-    static const uint8_t address = 0x77;
-    static const uint8_t OSS = 0; // Oversampling (0 to 3)
+    double calculateAltitude(int32_t pressure);
+
+    static const uint8_t address = 0xEE;
+
+    #define ALT_ULTRALOWPOW 0
+    #define ALT_STANDARD 1
+    #define ALT_HIGHRES 2
+    #define ALT_ULTRAHIGHRES 3
+    static const uint8_t OSS = ALT_STANDARD;
 
 private:
     int read(uint8_t add, int16_t *data); // 0 on success

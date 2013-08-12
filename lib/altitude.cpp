@@ -1,4 +1,5 @@
 #include "altitude.h"
+#include <math.h>
 
 // inspired by https://www.sparkfun.com/tutorials/253 :)
 
@@ -125,4 +126,11 @@ int Altitude::readPressure(int32_t *data) {
 
     *data = p;
     return 0;
+}
+
+double Altitude::calculateAltitude(int32_t pressure) {
+    double alt = (double)pressure / 100.0 / 1013.25; // pressure at sea level
+    alt = pow(alt, (1.0 / 5.255));
+    alt = 1 - alt;
+    return 44330 * alt;
 }

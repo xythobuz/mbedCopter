@@ -96,6 +96,7 @@ int main() {
                 altitude.readPressure(&pressure);
                 pc.printf("Temperature: %.1f Celsius\n", temperature * 0.1f);
                 pc.printf("Pressure: %d Pascal\n", pressure);
+                pc.printf("Altitude: %.5f\n", altitude.calculateAltitude(pressure));
                 break;
 
             default:

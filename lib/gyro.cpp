@@ -34,14 +34,14 @@ int Gyro::read(double *v) {
     char data[6];
 
     if (v == NULL)
-        return 3;
+        return 8;
 
     data[0] = registerOut | 0x80; // Auto-Increment
     if (i2c->write(address, data, 1, true))
-        return 2;
+        return 7;
 
     if (i2c->read(address, data, 6, false))
-        return 2;
+        return 6;
 
     uint8_t xl = data[0];
     uint8_t xh = data[1];
@@ -76,7 +76,7 @@ int Gyro::read(double *v) {
             v[2] = (((double)z) * 2000 / 0x8000);
             break;
         default:
-            return 1;
+            return 5;
     }
 
     return 0;

@@ -20,11 +20,11 @@ Attitude::Attitude(Gyro *g, Acc *a, int frequency) : pitchFilter(frequency), rol
 int Attitude::calculate() {
     double data[2][3];
 
-    if (gyro->read(data[GYRO]))
-        return 1;
+    if (int error = gyro->read(data[GYRO]))
+        return error;
 
-    if (acc->read(data[ACC]))
-        return 2;
+    if (int error = acc->read(data[ACC]))
+        return error;
 
     double accPitch = TODEG( atan(data[ACC][Y] / hypot(data[ACC][X], data[ACC][Z])) );
     double accRoll = TODEG( atan(data[ACC][X] / hypot(data[ACC][Y], data[ACC][Z])) );

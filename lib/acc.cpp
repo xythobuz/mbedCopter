@@ -37,11 +37,11 @@ int Acc::read(double *v) {
     char data[6];
 
     if (v == NULL)
-        return 3;
+        return 4;
 
     data[0] = registerOut | 0x80; // Auto-Increment
     if (i2c->write(address, data, 1, true))
-        return 2;
+        return 3;
 
     if (i2c->read(address, data, 6, false))
         return 2;
