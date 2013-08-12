@@ -7,6 +7,7 @@
 #include <stdlib.h>
 
 int attitudeFrequency = 200;
+int attitudeFlag = 0;
 
 DigitalOut statusLED[] = { DigitalOut(LED1), DigitalOut(LED2), DigitalOut(LED3), DigitalOut(LED4) };
 Serial pc(USBTX, USBRX);
@@ -18,12 +19,11 @@ Attitude attitude(&gyro, &acc, attitudeFrequency);
 Remote remote(p6, 6);
 Altitude altitude(&i2c);
 
-#define ERROR_ANIMATION_1 150 // IOOI <-> OIIO
-#define ERROR_ANIMATION_2 165 // IOIO <-> OIOI
-
-#define ERROR_ANIMATION_3 135 // IOOO <-> OIII
-#define ERROR_ANIMATION_4 75  // OIOO <-> IOII
-#define ERROR_ANIMATION_5 45  // OOIO <-> IIOI
+#define ERROR_ANIMATION_1 150 // IOOI <-> OIIO --> Gyro Init Error
+#define ERROR_ANIMATION_2 165 // IOIO <-> OIOI --> Acc Init Error
+#define ERROR_ANIMATION_3 135 // IOOO <-> OIII --> Altitude Init Error
+#define ERROR_ANIMATION_4 75  // OIOO <-> IOII --> Attitude Handler Error
+#define ERROR_ANIMATION_5 45  // OOIO <-> IIOI --> Too slow to keep up with calculations
 #define ERROR_ANIMATION_6 30  // OOOI <-> IIIO
 
 void display(uint8_t anim) {
@@ -43,14 +43,11 @@ void errorLoop(uint8_t anim) {
 }
 
 void attitudeHandler() {
-    if (int error = attitude.calculate()) {
-        pc.printf("Attitude Calculation Error %d!\n", error);
-        errorLoop(ERROR_ANIMATION_3);
-    }
+    attitudeFlag++;
 }
 
 int main() {
-    display(0x0F);
+    display(0x0F); // All LEDs on
 
     i2c.frequency(400 * 1000);
     pc.baud(38400);
@@ -67,13 +64,26 @@ int main() {
 
     if (int error = altitude.init()) {
         pc.printf("Altitude Init Error %d!\n", error);
-        errorLoop(ERROR_ANIMATION_4);
+        errorLoop(ERROR_ANIMATION_3);
     }
 
-    display(0);
+    pc.printf("mbedCopter initialized!\n");
     ticker.attach_us(&attitudeHandler, (1000000 / attitudeFrequency));
+    display(0);
 
     while(1) {
+        if (attitudeFlag > 0) {
+            attitudeFlag--;
+            if (int error = attitude.calculate()) {
+                pc.printf("Attitude Calculation Error %d!\n", error);
+                errorLoop(ERROR_ANIMATION_4);
+            }
+            if (attitudeFlag > 0) {
+                pc.printf("Too slow to keep up!\n");
+                errorLoop(ERROR_ANIMATION_5);
+            }
+        }
+
         if(pc.readable()) {
             switch (pc.getc()) {
             case 'a':
