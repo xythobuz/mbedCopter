@@ -1,7 +1,8 @@
 #include "remote.h"
 #include <stdlib.h>
 
-Remote::Remote(PinName pin, int channels) : interrupt(pin) {
+Remote::Remote(PinName pin, int ch) : interrupt(pin) {
+    channels = ch;
     bufferLength = channels + 1;
     position = 0;
     data = (int *)calloc(bufferLength, sizeof(int));
@@ -12,7 +13,7 @@ Remote::Remote(PinName pin, int channels) : interrupt(pin) {
 }
 
 int *Remote::get() {
-    int *buff = (int *)calloc(bufferLength, sizeof(int));
+    int *buff = (int *)calloc(channels, sizeof(int));
 
     // find maximum --> signal pause
     int max = 0, pos = 0;
@@ -23,7 +24,11 @@ int *Remote::get() {
         }
     }
 
-    for (int source = pos, target = 0; target < bufferLength; target++) {
+    int source = pos + 1, target = 0;
+    if (source >= bufferLength)
+            source = 0;
+
+    for (; target < channels; target++) {
         buff[target] = data[source++];
         if (source >= bufferLength)
             source = 0;

@@ -6,7 +6,7 @@
 
 #include <stdlib.h>
 
-int attitudeFrequency = 200;
+int attitudeFrequency = 100;
 int attitudeFlag = 0;
 
 DigitalOut statusLED[] = { DigitalOut(LED1), DigitalOut(LED2), DigitalOut(LED3), DigitalOut(LED4) };
@@ -76,11 +76,11 @@ int main() {
             attitudeFlag--;
             if (int error = attitude.calculate()) {
                 pc.printf("Attitude Calculation Error %d!\n", error);
-                errorLoop(ERROR_ANIMATION_4);
+                //errorLoop(ERROR_ANIMATION_4);
             }
             if (attitudeFlag > 0) {
                 pc.printf("Too slow to keep up!\n");
-                errorLoop(ERROR_ANIMATION_5);
+                //errorLoop(ERROR_ANIMATION_5);
             }
         }
 
@@ -93,8 +93,12 @@ int main() {
             case 'r':
                 int *data;
                 data = remote.get();
-                for (int i = 0; i < remote.bufferLength; i++) {
-                    pc.printf("%d: %d\n", i, data[i]);
+                for (int i = 0; i < remote.channels; i++) {
+                    pc.printf("%d: %d --> ", i + 1, data[i]);
+                    if (data[i] < remote.fail)
+                        pc.printf("Fail!\n");
+                    else
+                        pc.printf("%d%%\n", (data[i] - remote.min) * 100 / (remote.max - remote.min));
                 }
                 free(data);
                 break;
