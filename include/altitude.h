@@ -12,7 +12,7 @@ public:
     int readTemperature(uint16_t *data); // 0 on succes, units of 0.1 deg C
     int readPressure(int32_t *data); // 0 on success, units of Pa
 
-    double calculateAltitude(int32_t pressure);
+    float calculateAltitude(int32_t pressure);
 
     static const uint8_t address = 0xEE;
 

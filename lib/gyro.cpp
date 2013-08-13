@@ -1,4 +1,5 @@
 #include "sensors.h"
+#include "errors.h"
 
 Gyro::Gyro(I2C *i) {
     i2c = i;
@@ -20,28 +21,30 @@ int Gyro::init(Gyro::Range r) {
             v = 0x20;
             break;
         default:
-            return 1;
+            return ERR_ARGUMENT;
     }
     data[0] = register1; data[1] = 0x0F;
     if (i2c->write(address, data, 2, false))
-        return 2;
+        return ERR_GYRO_WRITE;
 
     data[0] = register4; data[1] = v;
-    return i2c->write(address, data, 2, false);
+    if (i2c->write(address, data, 2, false))
+        return ERR_GYRO_WRITE;
+    return SUCCESS;
 }
 
-int Gyro::read(double *v) {
+int Gyro::read(float *v) {
     char data[6];
 
     if (v == NULL)
-        return 8;
+        return ERR_ARGUMENT;
 
     data[0] = registerOut | 0x80; // Auto-Increment
     if (i2c->write(address, data, 1, true))
-        return 7;
+        return ERR_GYRO_WRITE;
 
     if (i2c->read(address, data, 6, false))
-        return 6;
+        return ERR_GYRO_READ;
 
     uint8_t xl = data[0];
     uint8_t xh = data[1];
@@ -61,23 +64,23 @@ int Gyro::read(double *v) {
 
     switch (range) {
         case r250DPS:
-            v[0] = (((double)x) * 250 / 0x8000);
-            v[1] = (((double)y) * 250 / 0x8000);
-            v[2] = (((double)z) * 250 / 0x8000);
+            v[0] = (((float)x) * 250 / 0x8000);
+            v[1] = (((float)y) * 250 / 0x8000);
+            v[2] = (((float)z) * 250 / 0x8000);
             break;
         case r500DPS:
-            v[0] = (((double)x) * 500 / 0x8000);
-            v[1] = (((double)y) * 500 / 0x8000);
-            v[2] = (((double)z) * 500 / 0x8000);
+            v[0] = (((float)x) * 500 / 0x8000);
+            v[1] = (((float)y) * 500 / 0x8000);
+            v[2] = (((float)z) * 500 / 0x8000);
             break;
         case r2000DPS:
-            v[0] = (((double)x) * 2000 / 0x8000);
-            v[1] = (((double)y) * 2000 / 0x8000);
-            v[2] = (((double)z) * 2000 / 0x8000);
+            v[0] = (((float)x) * 2000 / 0x8000);
+            v[1] = (((float)y) * 2000 / 0x8000);
+            v[2] = (((float)z) * 2000 / 0x8000);
             break;
         default:
-            return 5;
+            return ERR_ARGUMENT;
     }
 
-    return 0;
+    return SUCCESS;
 }

@@ -3,6 +3,7 @@
 #include "attitude.h"
 #include "remote.h"
 #include "altitude.h"
+#include "errors.h"
 
 #include <stdlib.h>
 
@@ -53,17 +54,17 @@ int main() {
     pc.baud(38400);
 
     if (int error = gyro.init(Gyro::r2000DPS)) {
-        pc.printf("Gyro Init Error %d!\n", error);
+        pc.printf("%s\n", getErrorString(error));
         errorLoop(ERROR_ANIMATION_1);
     }
 
     if (int error = acc.init(Acc::r8G)) {
-        pc.printf("Acc Init Error %d!\n", error);
+        pc.printf("%s\n", getErrorString(error));
         errorLoop(ERROR_ANIMATION_2);
     }
 
     if (int error = altitude.init()) {
-        pc.printf("Altitude Init Error %d!\n", error);
+        pc.printf("%s\n", getErrorString(error));
         errorLoop(ERROR_ANIMATION_3);
     }
 
@@ -75,7 +76,7 @@ int main() {
         if (attitudeFlag > 0) {
             attitudeFlag--;
             if (int error = attitude.calculate()) {
-                pc.printf("Attitude Calculation Error %d!\n", error);
+                pc.printf("%s\n", getErrorString(error));
                 //errorLoop(ERROR_ANIMATION_4);
             }
             if (attitudeFlag > 0) {

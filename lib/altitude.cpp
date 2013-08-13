@@ -1,4 +1,6 @@
 #include "altitude.h"
+#include "errors.h"
+
 #include <math.h>
 
 // inspired by https://www.sparkfun.com/tutorials/253 :)
@@ -15,12 +17,12 @@ int Altitude::read(uint8_t add, int16_t *data) {
     char buf[2];
     buf[0] = add;
     if (i2c->write(address, buf, 1, true))
-        return 1;
+        return ERR_ALT_WRITE;
     if (i2c->read(address, buf, 2, false))
-        return 2;
+        return ERR_ALT_READ;
     *data = buf[0] << 8;
     *data |= buf[1];
-    return 0;
+    return SUCCESS;
 }
 
 int Altitude::readCalibration() {
@@ -40,7 +42,7 @@ int Altitude::readCalibration() {
         ) {
         return error;
     } else {
-        return 0;
+        return SUCCESS;
     }
 }
 
@@ -49,14 +51,14 @@ int Altitude::readUT(uint16_t *data) {
     buf[0] = 0xF4;
     buf[1] = 0x2E;
     if (i2c->write(address, buf, 2, false))
-        return 3;
+        return ERR_ALT_WRITE;
 
     wait(0.0045);
 
     if (int error = read(0xF6, (int16_t *)data))
         return error;
 
-    return 0;
+    return SUCCESS;
 }
 
 int Altitude::readUP(uint32_t *data) {
@@ -64,20 +66,20 @@ int Altitude::readUP(uint32_t *data) {
     buf[0] = 0xF4;
     buf[1] = 0x34 + (OSS << 6);
     if (i2c->write(address, buf, 2, false))
-        return 1;
+        return ERR_ALT_WRITE;
 
-    wait(0.001 * (double)(2 + (3 << OSS)));
+    wait(0.001f * (float)(2 + (3 << OSS)));
 
     buf[0] = 0xF6;
     if (i2c->write(address, buf, 1, false))
-        return 2;
+        return ERR_ALT_WRITE;
 
     if (i2c->read(address, buf, 3, false))
-        return 3;
+        return ERR_ALT_READ;
 
     uint32_t up = (((uint32_t)buf[0] << 16) | ((uint32_t)buf[1] << 8) | (uint32_t)buf[2]) >> (8 - OSS);
     *data = up;
-    return 0;
+    return SUCCESS;
 }
 
 int Altitude::readTemperature(uint16_t *data) {
@@ -92,7 +94,7 @@ int Altitude::readTemperature(uint16_t *data) {
     b5 = x1 + x2;
     t = (b5 + 8) >> 4;
     *data = t;
-    return 0;
+    return SUCCESS;
 }
 
 int Altitude::readPressure(int32_t *data) {
@@ -125,11 +127,11 @@ int Altitude::readPressure(int32_t *data) {
     p += (x1 + x2 + 3791) >> 4;
 
     *data = p;
-    return 0;
+    return SUCCESS;
 }
 
-double Altitude::calculateAltitude(int32_t pressure) {
-    double alt = (double)pressure / 100.0 / 1013.25; // pressure at sea level
+float Altitude::calculateAltitude(int32_t pressure) {
+    float alt = (float)pressure / 100.0 / 1013.25; // pressure at sea level
     alt = pow(alt, (1.0 / 5.255));
     alt = 1 - alt;
     return 44330 * alt;

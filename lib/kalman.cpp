@@ -1,32 +1,32 @@
 #include "kalman.h"
 
 Kalman::Kalman(int frequency) {
-    x1 = 0.0;
-    x2 = 0.0;
-    x3 = 0.0;
+    x1 = 0.0f;
+    x2 = 0.0f;
+    x3 = 0.0f;
 
     // Init P to diagonal matrix with large values since
     // the initial state is not known
-    q11 = 1000.0;
-    q12 = 0.0;
-    q13 = 0.0;
-    q21 = 0.0;
-    q22 = 1000.0;
-    q23 = 0.0;
-    q31 = 0.0;
-    q32 = 0.0;
-    q33 = 1000.0;
+    q11 = 1000.0f;
+    q12 = 0.0f;
+    q13 = 0.0f;
+    q21 = 0.0f;
+    q22 = 1000.0f;
+    q23 = 0.0f;
+    q31 = 0.0f;
+    q32 = 0.0f;
+    q33 = 1000.0f;
 
-    DT = 1.0 / (double)frequency;
+    DT = 1.0f / (float)frequency;
 }
 
-void Kalman::innovate(double z1, double z2) {
-    double y1, y2;
-    double a, b, c;
-    double sDet;
-    double s11, s12, s21, s22;
-    double k11, k12, k21, k22, k31, k32;
-    double p11, p12, p13, p21, p22, p23, p31, p32, p33;
+void Kalman::innovate(float z1, float z2) {
+    float y1, y2;
+    float a, b, c;
+    float sDet;
+    float s11, s12, s21, s22;
+    float k11, k12, k21, k22, k31, k32;
+    float p11, p12, p13, p21, p22, p23, p31, p32, p33;
 
     // Step 1
     // x(k) = Fx(k-1) + Bu + w:
@@ -63,7 +63,7 @@ void Kalman::innovate(double z1, double z2) {
 
     // Step 5
     // K = PH*inv(S)
-    sDet = 1/(s11*s22 - s12*s21);
+    sDet = 1.0f/(s11*s22 - s12*s21);
     k11 = (q11*s22 - q12*s21)*sDet;
     k12 = (q12*s11 - q11*s12)*sDet;
     k21 = (q21*s22 - q22*s21)*sDet;

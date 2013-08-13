@@ -1,7 +1,9 @@
 #include "attitude.h"
+#include "errors.h"
+
 #include <math.h>
 
-#define TODEG(x) (((x) * 180) / M_PI) /**< Convert Radians to Degrees */
+#define TODEG(x) (((x) * 180.0f) / 3.14159f) /**< Convert Radians to Degrees */
 
 #define GYRO 0
 #define ACC 1
@@ -18,7 +20,7 @@ Attitude::Attitude(Gyro *g, Acc *a, int frequency) : pitchFilter(frequency), rol
 }
 
 int Attitude::calculate() {
-    double data[2][3];
+    float data[2][3];
 
     if (int error = gyro->read(data[GYRO]))
         return error;
@@ -26,8 +28,8 @@ int Attitude::calculate() {
     if (int error = acc->read(data[ACC]))
         return error;
 
-    double accPitch = TODEG( atan(data[ACC][Y] / hypot(data[ACC][X], data[ACC][Z])) );
-    double accRoll = TODEG( atan(data[ACC][X] / hypot(data[ACC][Y], data[ACC][Z])) );
+    float accPitch = TODEG( atanf(data[ACC][Y] / hypotf(data[ACC][X], data[ACC][Z])) );
+    float accRoll = TODEG( atanf(data[ACC][X] / hypotf(data[ACC][Y], data[ACC][Z])) );
 
     pitchFilter.innovate(accPitch, data[GYRO][X]);
     rollFilter.innovate(accRoll, data[GYRO][Y]);
@@ -35,5 +37,5 @@ int Attitude::calculate() {
     pitch = pitchFilter.x1;
     roll = rollFilter.x1;
 
-    return 0;
+    return SUCCESS;
 }

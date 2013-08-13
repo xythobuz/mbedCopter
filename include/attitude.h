@@ -9,7 +9,7 @@ public:
     Attitude(Gyro *g, Acc *a, int frequency);
     int calculate(); // 0 on success
 
-    double roll, pitch, yaw;
+    float roll, pitch, yaw;
 
 private:
     Kalman pitchFilter, rollFilter;
