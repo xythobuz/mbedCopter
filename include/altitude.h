@@ -8,9 +8,9 @@ public:
     Altitude(I2C *i);
     int init(); // 0 on success
 
-    // Call readTemperature() before readPressure()!!
-    int readTemperature(uint16_t *data); // 0 on succes, units of 0.1 deg C
-    int readPressure(int32_t *data); // 0 on success, units of Pa
+    // temperature in units of 0.1 deg C
+    // pressure in units of Pa
+    int read(uint16_t *temperature, int32_t *pressure); // 0 on success
 
     float calculateAltitude(int32_t pressure);
 
@@ -27,6 +27,8 @@ private:
     int readCalibration(); // 0 on success
     int readUT(uint16_t *data); // 0 on success
     int readUP(uint32_t *data); // 0 on success
+    int readTemperature(uint16_t *data); // 0 on success
+    int readPressure(int32_t *data); // 0 on success
 
     I2C *i2c;
     int16_t ac1, ac2, ac3, b1, b2, mb, mc, md;

@@ -130,6 +130,13 @@ int Altitude::readPressure(int32_t *data) {
     return SUCCESS;
 }
 
+int Altitude::read(uint16_t *temperature, int32_t *pressure) {
+    if (int error = readTemperature(temperature))
+        return error;
+
+    return readPressure(pressure);
+}
+
 float Altitude::calculateAltitude(int32_t pressure) {
     float alt = (float)pressure / 100.0 / 1013.25; // pressure at sea level
     alt = pow(alt, (1.0 / 5.255));

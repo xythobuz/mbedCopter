@@ -7,6 +7,13 @@
 
 #include <stdlib.h>
 
+#define ERROR_ANIMATION_x 150 // IOOI <-> OIIO --> Used by Bootloader + Runtime
+#define ERROR_ANIMATION_1 165 // IOIO <-> OIOI --> Gyro Init Error
+#define ERROR_ANIMATION_2 135 // IOOO <-> OIII --> Acc Init Error
+#define ERROR_ANIMATION_3 75  // OIOO <-> IOII --> Altitude Init Error
+#define ERROR_ANIMATION_4 45  // OOIO <-> IIOI --> Attitude Handler Error
+#define ERROR_ANIMATION_5 30  // OOOI <-> IIIO --> Too slow to keep up with calculations
+
 int attitudeFrequency = 100;
 int attitudeFlag = 0;
 
@@ -14,18 +21,12 @@ DigitalOut statusLED[] = { DigitalOut(LED1), DigitalOut(LED2), DigitalOut(LED3),
 Serial pc(USBTX, USBRX);
 Ticker ticker;
 I2C i2c(p28, p27);
+
 Gyro gyro(&i2c);
 Acc acc(&i2c);
 Attitude attitude(&gyro, &acc, attitudeFrequency);
-Remote remote(p6, 6);
 Altitude altitude(&i2c);
-
-#define ERROR_ANIMATION_1 150 // IOOI <-> OIIO --> Gyro Init Error
-#define ERROR_ANIMATION_2 165 // IOIO <-> OIOI --> Acc Init Error
-#define ERROR_ANIMATION_3 135 // IOOO <-> OIII --> Altitude Init Error
-#define ERROR_ANIMATION_4 75  // OIOO <-> IOII --> Attitude Handler Error
-#define ERROR_ANIMATION_5 45  // OOIO <-> IIOI --> Too slow to keep up with calculations
-#define ERROR_ANIMATION_6 30  // OOOI <-> IIIO
+Remote remote(p6, 6);
 
 void display(uint8_t anim) {
     statusLED[0] = ((anim & 0x08) >> 3);
@@ -107,8 +108,7 @@ int main() {
             case 'p':
                 uint16_t temperature;
                 int32_t pressure;
-                altitude.readTemperature(&temperature);
-                altitude.readPressure(&pressure);
+                altitude.read(&temperature, &pressure);
                 pc.printf("Temperature: %.1f Celsius\n", temperature * 0.1f);
                 pc.printf("Pressure: %d Pascal\n", pressure);
                 pc.printf("Altitude: %.5f\n", altitude.calculateAltitude(pressure));
