@@ -15,6 +15,8 @@
 #define ERROR_ANIMATION_4 45  // OOIO <-> IIOI --> Attitude Handler Error
 #define ERROR_ANIMATION_5 30  // OOOI <-> IIIO --> Too slow to keep up with calculations
 
+const static int remoteChannels = 6;
+
 int attitudeFrequency = 100;
 int attitudeFlag = 0;
 
@@ -27,7 +29,7 @@ Gyro gyro(&i2c);
 Acc acc(&i2c);
 Attitude attitude(&gyro, &acc, attitudeFrequency);
 Altitude altitude(&i2c);
-Remote remote(p6, 6);
+Remote remote(p6, remoteChannels);
 PID  rollPID(5.0, 0.0015, -13.0, -255, 255);
 PID pitchPID(5.0, 0.0015, -13.0, -255, 255);
 
@@ -81,10 +83,10 @@ int main() {
             attitudeFlag--;
             if (int error = attitude.calculate()) {
                 pc.printf("%s\n", getErrorString(error));
-                //errorLoop(ERROR_ANIMATION_4);
+                errorLoop(ERROR_ANIMATION_4);
             }
             if (attitudeFlag > 0) {
-                pc.printf("Too slow to keep up!\n");
+                pc.printf("!! Too slow to keep up !!\n");
                 //errorLoop(ERROR_ANIMATION_5);
             }
         }
