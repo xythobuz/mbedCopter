@@ -1,5 +1,5 @@
 /*
- * errors.cpp
+ * motor.h
  *
  * Copyright (c) 2013, Thomas Buck <xythobuz@xythobuz.de>
  *
@@ -26,24 +26,23 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "errors.h"
+#include "mbed.h"
 
-#include <stdlib.h>
+#ifndef _MOTOR_H
+#define _MOTOR_H
 
-const char *errorStrings[NUM_ERRORS] = {
-    "Success",
-    "Argument Error",
-    "Acc Read Error",
-    "Acc Write Error",
-    "Gyro Write Error",
-    "Gyro Read Error",
-    "Alt Write Error",
-    "Alt Read Error",
-    "Motor Write Error"
+class Motor {
+public:
+    Motor(I2C *i);
+    void set(int id, uint8_t speed);
+    int send(); // 0 on success
+
+    static const uint8_t baseAddress = 0x52;
+    static const int motorCount = 4;
+
+private:
+    I2C *i2c;
+    uint8_t motorSpeed[motorCount];
 };
 
-const char *getErrorString(int error) {
-    if (error < NUM_ERRORS)
-        return errorStrings[error];
-    return NULL;
-}
+#endif

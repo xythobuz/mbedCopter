@@ -1,5 +1,5 @@
 /*
- * errors.cpp
+ * motor.cpp
  *
  * Copyright (c) 2013, Thomas Buck <xythobuz@xythobuz.de>
  *
@@ -26,24 +26,31 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "motor.h"
 #include "errors.h"
 
-#include <stdlib.h>
+Motor::Motor(I2C *i) {
+    i2c = i;
+    for (int i = 0; i < motorCount; i++) {
+        motorSpeed[i] = 0;
+    }
+}
 
-const char *errorStrings[NUM_ERRORS] = {
-    "Success",
-    "Argument Error",
-    "Acc Read Error",
-    "Acc Write Error",
-    "Gyro Write Error",
-    "Gyro Read Error",
-    "Alt Write Error",
-    "Alt Read Error",
-    "Motor Write Error"
-};
+void Motor::set(int id, uint8_t speed) {
+    if (id < motorCount) {
+        motorSpeed[id] = speed;
+    } else {
+        for (id = 0; id < motorCount; id++) {
+            motorSpeed[id] = speed;
+        }
+    }
+}
 
-const char *getErrorString(int error) {
-    if (error < NUM_ERRORS)
-        return errorStrings[error];
-    return NULL;
+int Motor::send() {
+    for (int i = 0; i < motorCount; i++) {
+        if (i2c->write(baseAddress, (char *)(motorSpeed + i), 1, false))
+            return ERR_MOTOR_WRITE;
+    }
+
+    return SUCCESS;
 }

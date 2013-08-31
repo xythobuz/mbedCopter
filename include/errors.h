@@ -29,7 +29,7 @@
 #ifndef _ERRORS_H
 #define _ERRORS_H
 
-#define NUM_ERRORS 8
+#define NUM_ERRORS 9
 
 #define SUCCESS 0
 #define ERR_ARGUMENT 1
@@ -39,6 +39,7 @@
 #define ERR_GYRO_READ 5
 #define ERR_ALT_WRITE 6
 #define ERR_ALT_READ 7
+#define ERR_MOTOR_WRITE 8
 
 const char *getErrorString(int error);
 

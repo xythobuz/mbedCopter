@@ -33,6 +33,7 @@
 #include "altitude.h"
 #include "errors.h"
 #include "pid.h"
+#include "motor.h"
 
 #include <stdlib.h>
 
@@ -44,9 +45,14 @@
 #define ERROR_ANIMATION_5 30  // OOOI <-> IIIO --> Too slow to keep up with calculations
 
 const static int remoteChannels = 6;
+const static float defaultP = 5.0;
+const static float defaultI = 0.0015;
+const static float defaultD = -13.0;
+const static float defaultMin = -255.0;
+const static float defaultMax = 255.0;
+const static int attitudeFrequency = 100; // Attitude and Control Frequency in Hz
 
-int attitudeFrequency = 100;
-int attitudeFlag = 0;
+int attitudeFlag = 0; // Attitude Execution Flag
 
 DigitalOut statusLED[] = { DigitalOut(LED1), DigitalOut(LED2), DigitalOut(LED3), DigitalOut(LED4) };
 Serial pc(USBTX, USBRX);
@@ -58,8 +64,9 @@ Acc acc(&i2c);
 Attitude attitude(&gyro, &acc, attitudeFrequency);
 Altitude altitude(&i2c);
 Remote remote(p6, remoteChannels);
-PID  rollPID(5.0, 0.0015, -13.0, -255, 255);
-PID pitchPID(5.0, 0.0015, -13.0, -255, 255);
+PID rollPID(defaultP, defaultI, defaultD, defaultMin, defaultMax);
+PID pitchPID(defaultP, defaultI, defaultD, defaultMin, defaultMax);
+Motor motor(&i2c);
 
 void display(uint8_t anim) {
     statusLED[0] = ((anim & 0x08) >> 3);
@@ -71,9 +78,9 @@ void display(uint8_t anim) {
 void errorLoop(uint8_t anim) {
     while(1) {
         display(anim >> 4);
-        wait(0.2);
+        wait(0.25);
         display(anim);
-        wait(0.2);
+        wait(0.25);
     }
 }
 
@@ -107,22 +114,29 @@ int main() {
     display(0);
 
     while(1) {
+        // Flight Control Code
         if (attitudeFlag > 0) {
-            attitudeFlag--;
+            if (attitudeFlag > 1) {
+                pc.printf("!! Too slow to keep up (%d) !!\n", attitudeFlag - 1);
+                //errorLoop(ERROR_ANIMATION_5);
+            }
+            attitudeFlag = 0;
+
             if (int error = attitude.calculate()) {
                 pc.printf("%s\n", getErrorString(error));
                 errorLoop(ERROR_ANIMATION_4);
             }
-            if (attitudeFlag > 0) {
-                pc.printf("!! Too slow to keep up !!\n");
-                //errorLoop(ERROR_ANIMATION_5);
-            }
+
+            // To-Do: Read Remote and set target angles
+            float rollDiff = rollPID.execute(0, attitude.roll);
+            float pitchDiff = pitchPID.execute(0, attitude.pitch);
         }
 
+        // UART Menu
         if(pc.readable()) {
             switch (pc.getc()) {
             case 'a':
-                pc.printf("Roll: %.2f\nPitch: %.2f\nYaw: %.2f\n", attitude.roll, attitude.pitch, attitude.yaw);
+                pc.printf("R %.2f\nP %.2f\nY %.2f\n", attitude.roll, attitude.pitch, attitude.yaw);
                 break;
 
             case 'r':
@@ -142,13 +156,13 @@ int main() {
                 uint16_t temperature;
                 int32_t pressure;
                 altitude.read(&temperature, &pressure);
-                pc.printf("Temperature: %.1f Celsius\n", temperature * 0.1f);
-                pc.printf("Pressure: %d Pascal\n", pressure);
-                pc.printf("Altitude: %.5f\n", altitude.calculateAltitude(pressure));
+                pc.printf("Temp: %.1fC\n", temperature * 0.1f);
+                pc.printf("Pres: %dPa\n", pressure);
+                pc.printf("Alti: %.2fm\n", altitude.calculateAltitude(pressure));
                 break;
 
             default:
-                pc.printf("Command unknown!\n");
+                pc.printf("??\n");
                 break;
             }
         }
