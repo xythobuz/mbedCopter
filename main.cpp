@@ -4,6 +4,7 @@
 #include "remote.h"
 #include "altitude.h"
 #include "errors.h"
+#include "pid.h"
 
 #include <stdlib.h>
 
@@ -27,6 +28,8 @@ Acc acc(&i2c);
 Attitude attitude(&gyro, &acc, attitudeFrequency);
 Altitude altitude(&i2c);
 Remote remote(p6, 6);
+PID  rollPID(5.0, 0.0015, -13.0, -255, 255);
+PID pitchPID(5.0, 0.0015, -13.0, -255, 255);
 
 void display(uint8_t anim) {
     statusLED[0] = ((anim & 0x08) >> 3);
