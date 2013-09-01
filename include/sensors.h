@@ -27,6 +27,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "mbed.h"
+#include "errors.h"
 
 #ifndef _SENSORS_H
 #define _SENSORS_H
@@ -40,8 +41,8 @@ public:
     };
 
     Gyro(I2C *i);
-    int init(Range r); // 0 on success
-    int read(float *v); // 0 on success
+    error_t init(Range r); // 0 on success
+    error_t read(float *v); // 0 on success
 
     static const uint8_t address = 0xD6;
     static const uint8_t register1 = 0x20;

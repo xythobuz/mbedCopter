@@ -47,13 +47,13 @@ Attitude::Attitude(Gyro *g, Acc *a, int frequency) : pitchFilter(frequency), rol
     yaw = 0.0;
 }
 
-int Attitude::calculate() {
+error_t Attitude::calculate() {
     float data[2][3];
 
-    if (int error = gyro->read(data[GYRO]))
+    if (error_t error = gyro->read(data[GYRO]))
         return error;
 
-    if (int error = acc->read(data[ACC]))
+    if (error_t error = acc->read(data[ACC]))
         return error;
 
     float accPitch = TODEG( atanf(data[ACC][Y] / hypotf(data[ACC][X], data[ACC][Z])) );

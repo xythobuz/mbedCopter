@@ -33,7 +33,7 @@ Gyro::Gyro(I2C *i) {
     i2c = i;
 }
 
-int Gyro::init(Gyro::Range r) {
+error_t Gyro::init(Gyro::Range r) {
     char data[2];
     uint8_t v;
 
@@ -61,7 +61,7 @@ int Gyro::init(Gyro::Range r) {
     return SUCCESS;
 }
 
-int Gyro::read(float *v) {
+error_t Gyro::read(float *v) {
     char data[6];
 
     if (v == NULL)

@@ -27,6 +27,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "mbed.h"
+#include "errors.h"
 
 #ifndef _ALTITUDE_H
 #define _ALTITUDE_H
@@ -34,11 +35,11 @@
 class Altitude {
 public:
     Altitude(I2C *i);
-    int init(); // 0 on success
+    error_t init(); // 0 on success
 
     // temperature in units of 0.1 deg C
     // pressure in units of Pa
-    int read(uint16_t *temperature, int32_t *pressure); // 0 on success
+    error_t read(uint16_t *temperature, int32_t *pressure); // 0 on success
 
     float calculateAltitude(int32_t pressure);
 
@@ -51,12 +52,12 @@ public:
     static const uint8_t OSS = ALT_STANDARD;
 
 private:
-    int read(uint8_t add, int16_t *data); // 0 on success
-    int readCalibration(); // 0 on success
-    int readUT(uint16_t *data); // 0 on success
-    int readUP(uint32_t *data); // 0 on success
-    int readTemperature(uint16_t *data); // 0 on success
-    int readPressure(int32_t *data); // 0 on success
+    error_t read(uint8_t add, int16_t *data); // 0 on success
+    error_t readCalibration(); // 0 on success
+    error_t readUT(uint16_t *data); // 0 on success
+    error_t readUP(uint32_t *data); // 0 on success
+    error_t readTemperature(uint16_t *data); // 0 on success
+    error_t readPressure(int32_t *data); // 0 on success
 
     I2C *i2c;
     int16_t ac1, ac2, ac3, b1, b2, mb, mc, md;

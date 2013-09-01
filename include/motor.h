@@ -27,6 +27,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "mbed.h"
+#include "errors.h"
 
 #ifndef _MOTOR_H
 #define _MOTOR_H
@@ -35,7 +36,7 @@ class Motor {
 public:
     Motor(I2C *i);
     void set(int id, uint8_t speed);
-    int send(); // 0 on success
+    error_t send(); // 0 on success
 
     static const uint8_t baseAddress = 0x52;
     static const int motorCount = 4;

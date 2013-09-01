@@ -46,7 +46,7 @@ void Motor::set(int id, uint8_t speed) {
     }
 }
 
-int Motor::send() {
+error_t Motor::send() {
     for (int i = 0; i < motorCount; i++) {
         if (i2c->write(baseAddress, (char *)(motorSpeed + i), 1, false))
             return ERR_MOTOR_WRITE;

@@ -29,6 +29,8 @@
 #ifndef _ERRORS_H
 #define _ERRORS_H
 
+typedef int error_t;
+
 #define NUM_ERRORS 9
 
 #define SUCCESS 0
@@ -41,6 +43,6 @@
 #define ERR_ALT_READ 7
 #define ERR_MOTOR_WRITE 8
 
-const char *getErrorString(int error);
+const char *getErrorString(error_t error);
 
 #endif

@@ -43,6 +43,7 @@
 #define ERROR_ANIMATION_3 75  // OIOO <-> IOII --> Altitude Init Error
 #define ERROR_ANIMATION_4 45  // OOIO <-> IIOI --> Attitude Handler Error
 #define ERROR_ANIMATION_5 30  // OOOI <-> IIIO --> Too slow to keep up with calculations
+#define ERROR_ANIMATION_6 240 // IIII <-> OOOO --> Ran out of Memory
 
 const static int remoteChannels = 6;
 const static float defaultP = 5.0;
@@ -51,8 +52,13 @@ const static float defaultD = -13.0;
 const static float defaultMin = -255.0;
 const static float defaultMax = 255.0;
 const static int attitudeFrequency = 100; // Attitude and Control Frequency in Hz
+const static int remoteFrequency = 10; // Remote Read Frequency in Hz
 
 int attitudeFlag = 0; // Attitude Execution Flag
+int remoteFlag = 0;
+
+int *remoteData = NULL;
+int remoteError = 0;
 
 DigitalOut statusLED[] = { DigitalOut(LED1), DigitalOut(LED2), DigitalOut(LED3), DigitalOut(LED4) };
 Serial pc(USBTX, USBRX);
@@ -88,46 +94,72 @@ void attitudeHandler() {
     attitudeFlag++;
 }
 
+void remoteHandler() {
+    remoteFlag++;
+}
+
 int main() {
     display(0x0F); // All LEDs on
 
     i2c.frequency(400 * 1000);
     pc.baud(38400);
 
-    if (int error = gyro.init(Gyro::r2000DPS)) {
+    if (error_t error = gyro.init(Gyro::r2000DPS)) {
         pc.printf("%s\n", getErrorString(error));
         errorLoop(ERROR_ANIMATION_1);
     }
 
-    if (int error = acc.init(Acc::r8G)) {
+    if (error_t error = acc.init(Acc::r8G)) {
         pc.printf("%s\n", getErrorString(error));
         errorLoop(ERROR_ANIMATION_2);
     }
 
-    if (int error = altitude.init()) {
+    if (error_t error = altitude.init()) {
         pc.printf("%s\n", getErrorString(error));
         errorLoop(ERROR_ANIMATION_3);
     }
 
     pc.printf("mbedCopter initialized!\n");
     ticker.attach_us(&attitudeHandler, (1000000 / attitudeFrequency));
+    ticker.attach_us(&remoteHandler, (1000000 / remoteFrequency));
     display(0);
 
     while(1) {
+        // Remote Control Reading
+        if (remoteFlag > 0) {
+            if (remoteFlag > 1) {
+                pc.printf("!! Too slow for Remote (%d) !!\n", remoteFlag - 1);
+                //errorLoop(ERROR_ANIMATION_5);
+            }
+            remoteFlag = 0;
+
+            if (remoteData != NULL)
+                free(remoteData);
+
+            remoteError = 0;
+            remoteData = remote.get();
+            if (remoteData == NULL)
+                errorLoop(ERROR_ANIMATION_6);
+            for (int i = 0; i < remote.channels; i++) {
+                if (remoteData[i] < remote.fail)
+                    remoteError = 1;
+            }
+        }
+
         // Flight Control Code
         if (attitudeFlag > 0) {
             if (attitudeFlag > 1) {
-                pc.printf("!! Too slow to keep up (%d) !!\n", attitudeFlag - 1);
+                pc.printf("!! Too slow for Attitude (%d) !!\n", attitudeFlag - 1);
                 //errorLoop(ERROR_ANIMATION_5);
             }
             attitudeFlag = 0;
 
-            if (int error = attitude.calculate()) {
+            if (error_t error = attitude.calculate()) {
                 pc.printf("%s\n", getErrorString(error));
                 errorLoop(ERROR_ANIMATION_4);
             }
 
-            // To-Do: Read Remote and set target angles
+            // To-Do: Properly set target angles
             float rollDiff = rollPID.execute(0, attitude.roll);
             float pitchDiff = pitchPID.execute(0, attitude.pitch);
         }
@@ -142,6 +174,10 @@ int main() {
             case 'r':
                 int *data;
                 data = remote.get();
+                if (data == NULL) {
+                    pc.printf("Out of Memory!\n");
+                    break;
+                }
                 for (int i = 0; i < remote.channels; i++) {
                     pc.printf("%d: %d --> ", i + 1, data[i]);
                     if (data[i] < remote.fail)

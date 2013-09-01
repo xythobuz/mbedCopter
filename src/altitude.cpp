@@ -37,11 +37,11 @@ Altitude::Altitude(I2C *i) {
     i2c = i;
 }
 
-int Altitude::init() {
+error_t Altitude::init() {
     return readCalibration();
 }
 
-int Altitude::read(uint8_t add, int16_t *data) {
+error_t Altitude::read(uint8_t add, int16_t *data) {
     char buf[2];
     buf[0] = add;
     if (i2c->write(address, buf, 1, true))
@@ -53,8 +53,8 @@ int Altitude::read(uint8_t add, int16_t *data) {
     return SUCCESS;
 }
 
-int Altitude::readCalibration() {
-    int error = 0;
+error_t Altitude::readCalibration() {
+    error_t error = 0;
     if (
     (error = read(0xAA, &ac1)) ||
     (error = read(0xAC, &ac2)) ||
@@ -74,7 +74,7 @@ int Altitude::readCalibration() {
     }
 }
 
-int Altitude::readUT(uint16_t *data) {
+error_t Altitude::readUT(uint16_t *data) {
     char buf[2];
     buf[0] = 0xF4;
     buf[1] = 0x2E;
@@ -83,13 +83,13 @@ int Altitude::readUT(uint16_t *data) {
 
     wait(0.0045);
 
-    if (int error = read(0xF6, (int16_t *)data))
+    if (error_t error = read(0xF6, (int16_t *)data))
         return error;
 
     return SUCCESS;
 }
 
-int Altitude::readUP(uint32_t *data) {
+error_t Altitude::readUP(uint32_t *data) {
     char buf[3];
     buf[0] = 0xF4;
     buf[1] = 0x34 + (OSS << 6);
@@ -110,11 +110,11 @@ int Altitude::readUP(uint32_t *data) {
     return SUCCESS;
 }
 
-int Altitude::readTemperature(uint16_t *data) {
+error_t Altitude::readTemperature(uint16_t *data) {
     int32_t x1, x2;
     uint16_t ut, t;
 
-    if (int error = readUT(&ut))
+    if (error_t error = readUT(&ut))
         return error;
 
     x1 = (((int32_t)ut - (int32_t)ac6) * (int32_t)ac5) >> 15;
@@ -125,11 +125,11 @@ int Altitude::readTemperature(uint16_t *data) {
     return SUCCESS;
 }
 
-int Altitude::readPressure(int32_t *data) {
+error_t Altitude::readPressure(int32_t *data) {
     int32_t x1, x2, x3, b3, b6, p;
     uint32_t b4, b7, up;
 
-    if (int error = readUP(&up))
+    if (error_t error = readUP(&up))
         return error;
 
     b6 = b5 - 4000;
@@ -158,8 +158,8 @@ int Altitude::readPressure(int32_t *data) {
     return SUCCESS;
 }
 
-int Altitude::read(uint16_t *temperature, int32_t *pressure) {
-    if (int error = readTemperature(temperature))
+error_t Altitude::read(uint16_t *temperature, int32_t *pressure) {
+    if (error_t error = readTemperature(temperature))
         return error;
 
     return readPressure(pressure);

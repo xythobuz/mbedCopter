@@ -28,6 +28,7 @@
  */
 #include "kalman.h"
 #include "sensors.h"
+#include "errors.h"
 
 #ifndef _ATTITUDE_H
 #define _ATTITUDE_H
@@ -35,7 +36,7 @@
 class Attitude {
 public:
     Attitude(Gyro *g, Acc *a, int frequency);
-    int calculate(); // 0 on success
+    error_t calculate(); // 0 on success
 
     float roll, pitch, yaw;
 

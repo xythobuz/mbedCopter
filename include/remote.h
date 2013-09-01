@@ -34,7 +34,7 @@
 class Remote {
 public:
     Remote(PinName pin, int ch);
-    int *get();
+    int *get(); // Could return NULL
 
     int channels;
     int bufferLength;

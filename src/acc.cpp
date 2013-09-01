@@ -33,7 +33,7 @@ Acc::Acc(I2C *i) {
     i2c = i;
 }
 
-int Acc::init(Acc::Range r) {
+error_t Acc::init(Acc::Range r) {
     char data[2];
     uint8_t v;
 
@@ -64,7 +64,7 @@ int Acc::init(Acc::Range r) {
     return SUCCESS;
 }
 
-int Acc::read(float *v) {
+error_t Acc::read(float *v) {
     char data[6];
 
     if (v == NULL)

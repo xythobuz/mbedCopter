@@ -42,6 +42,8 @@ Remote::Remote(PinName pin, int ch) : interrupt(pin) {
 
 int *Remote::get() {
     int *buff = (int *)calloc(channels, sizeof(int));
+    if (buff == NULL)
+        return NULL;
 
     // find maximum --> signal pause
     int max = 0, pos = 0;
