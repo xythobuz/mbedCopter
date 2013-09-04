@@ -110,13 +110,15 @@ void display(uint8_t anim) {
 }
 
 void errorLoop(uint8_t anim) {
-    motor.set(4, 0);
-    motor.send();
     while(1) {
         display(anim >> 4);
         wait(0.25);
         display(anim);
         wait(0.25);
+
+        // Just to be sure
+        motor.set(4, 0);
+        motor.send();
     }
 }
 
@@ -131,7 +133,7 @@ void remoteHandler() {
 int main() {
     display(0x0F); // All LEDs on
 
-    i2c.frequency(400 * 1000);
+    i2c.frequency(400000);
     pc.baud(38400);
 
     if (error_t error = gyro.init(Gyro::r2000DPS)) {
