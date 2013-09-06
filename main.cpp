@@ -72,8 +72,8 @@ const static float defaultMax = 128.0;
 const static int attitudeFrequency = 100; // Attitude and Control Frequency in Hz
 const static int remoteFrequency = 10; // Remote Read Frequency in Hz
 
-int attitudeFlag = 0; // Attitude Execution Flag
-int remoteFlag = 0;
+volatile int attitudeFlag = 0; // Attitude Execution Flag
+volatile int remoteFlag = 0;
 
 int remoteError = 0;
 int baseSpeed = 0;
@@ -130,6 +130,21 @@ void remoteHandler() {
     remoteFlag++;
 }
 
+template <typename T>
+void atomicSet(volatile T *var, T content) {
+    __disable_irq();
+    *var = content;
+    __enable_irq();
+}
+
+template <typename T>
+T atomicGet(volatile T *var) {
+    __disable_irq();
+    T tmp = *var;
+    __enable_irq();
+    return tmp;
+}
+
 int main() {
     display(0x0F); // All LEDs on
 
@@ -158,12 +173,12 @@ int main() {
 
     while(1) {
         // Remote Control Reading
-        if (remoteFlag > 0) {
-            if (remoteFlag > 1) {
-                pc.printf("!! Too slow for Remote (%d) !!\n", remoteFlag - 1);
+        if (atomicGet(&remoteFlag) > 0) {
+            if (atomicGet(&remoteFlag) > 1) {
+                pc.printf("!! Too slow for Remote (%d) !!\n", atomicGet(&remoteFlag) - 1);
                 //errorLoop(ERROR_ANIMATION_5);
             }
-            remoteFlag = 0;
+            atomicSet(&remoteFlag, 0);
             remoteError = 0;
             int *remoteData = remote.get();
             if (remoteData == NULL) {
@@ -187,12 +202,12 @@ int main() {
         }
 
         // Flight Control Code
-        if (attitudeFlag > 0) {
-            if (attitudeFlag > 1) {
-                pc.printf("!! Too slow for Attitude (%d) !!\n", attitudeFlag - 1);
+        if (atomicGet(&attitudeFlag) > 0) {
+            if (atomicGet(&attitudeFlag) > 1) {
+                pc.printf("!! Too slow for Attitude (%d) !!\n", atomicGet(&attitudeFlag) - 1);
                 //errorLoop(ERROR_ANIMATION_5);
             }
-            attitudeFlag = 0;
+            atomicSet(&attitudeFlag, 0);
 
             if (error_t error = attitude.calculate()) {
                 pc.printf("%s\n", getErrorString(error));
